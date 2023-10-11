@@ -1,21 +1,28 @@
 {
-    "name": "backend",
-    "version": "1.0.0",
-    "description": "",
-    "main": "index.js",
-    "scripts": {
-      "test": "echo \"Error: no test specified\" && exit 1"
-    },
-    "repository": {
-      "type": "git",
-      "url": "git+ssh://git@gitlab.com/cati-jr/trainees-2023/grupo-b/backend.git"
-    },
-    "keywords": [],
-    "author": "",
-    "license": "ISC",
-    "bugs": {
-      "url": "https://gitlab.com/cati-jr/trainees-2023/grupo-b/backend/issues"
-    },
-    "homepage": "https://gitlab.com/cati-jr/trainees-2023/grupo-b/backend#readme"
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "sucrase-node src/server.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@gitlab.com/cati-jr/trainees-2023/grupo-b/backend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://gitlab.com/cati-jr/trainees-2023/grupo-b/backend/issues"
+  },
+  "homepage": "https://gitlab.com/cati-jr/trainees-2023/grupo-b/backend#readme",
+  "dependencies": {
+    "fastify": "^4.24.0",
+    "firebase": "^10.4.0",
+    "firestore": "^1.1.6",
+    "sucrase": "^3.34.0",
+    "typescript": "^5.2.2"
   }
-  
+}
