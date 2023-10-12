@@ -1,6 +1,7 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { auth, admin } from '../firebase/firebaseConfig';
 
+// Interfaces para o body das requisições
 import { LoginBody } from '../models/loginBody';
 import { RegisterBody } from '../models/registerBody';
 
@@ -32,26 +33,50 @@ export const registerEmailAndPassController = async (request: FastifyRequest, re
 
     try {
         // Cria o usuário com o auth.createUser
-        const user = await admin.auth().createUser({
-            email,
-            password: senha,
-        });
+        const userRecord = await auth.createUserWithEmailAndPassword(email, senha);
+        
+        if (userRecord) {
+            const user = userRecord.user;
 
-        // Usa o UID do usuário para criar um documento na coleção 'usuarios' no Firestore Database
-        const usuarioData = {
-            uid: user.uid,
-            nome,
-            telefone,
-        };
+            // Verifica se 'user' não é nulo antes de acessar suas propriedades
+            if (user) {
+                // Usa o UID do usuário para criar um documento na coleção 'usuarios' no Firestore Database
+                const usuarioData = {
+                    uid: user.uid,
+                    nome,
+                    email,
+                    telefone,
+                };
 
-        const usuarioRef = admin.firestore().collection('usuarios').doc(user.uid);
-        await usuarioRef.set(usuarioData);
+                // Envia email de confirmação
+                await user.sendEmailVerification();
 
-        reply.send({ mensagem: 'Usuário registrado com sucesso', user });
+                const usuarioRef = admin.firestore().collection('usuarios').doc(user.uid);
+                await usuarioRef.set(usuarioData);
+
+                reply.send({ mensagem: 'Usuário registrado com sucesso', user });
+            } else {
+                // 'user' é nulo
+                reply.status(500).send({ erro: 'Usuário não criado corretamente' });
+            }
+        } else {
+            // 'userRecord' é nulo
+            reply.status(500).send({ erro: 'Erro ao registrar usuário' });
+        }
 
     } catch (error) {
         console.error('Erro ao registrar usuário:', error);
         reply.status(500).send({ erro: 'Erro ao registrar usuário' });
     }
+};
 
+export const logoutController = async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+        await auth.signOut();
+        reply.send({ mensagem: 'Logout realizado' });
+        
+    } catch (error) {
+        console.error('Erro ao fazer logout:', error);
+        reply.status(500).send({ erro: 'Erro ao fazer logout' });
+    }
 };
