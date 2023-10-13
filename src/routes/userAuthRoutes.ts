@@ -10,16 +10,22 @@ Funções necessárias:
 
 - logout X
 
-- alterar senha por meio do email
+- "esqueci minha senha" por meio do email X
+- alterar senha (senha atual e nova senha) X
+
 */
 import { 
     loginEmailAndPassController, 
     registerEmailAndPassController,
-    logoutController
-    } from '../controllers/authControllers';
+    logoutController,
+    resetPasswordController,
+    changePasswordController
+    } from '../controllers/userAuthControllers';
 
 export default (server) => {
-    server.post('/loginEmailAndPass', loginEmailAndPassController);
-    server.post('/registerEmailAndPass', registerEmailAndPassController);
+    server.post('/login', loginEmailAndPassController);
+    server.post('/register', registerEmailAndPassController);
     server.post('/logout', logoutController);
+    server.post('/resetPassword', resetPasswordController);
+    server.post('/changePassword', changePasswordController);
 }
