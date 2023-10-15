@@ -58,7 +58,7 @@ export const registerEmailAndPassController = async (request: FastifyRequest, re
                 const usuarioRef = admin.firestore().collection('usuarios').doc(user.uid);
                 await usuarioRef.set(usuarioData);
 
-                reply.send({ mensagem: 'Usuário registrado com sucesso', user });
+                reply.status(201).send({ mensagem: 'Usuário registrado com sucesso', user });
             }
         }
 
