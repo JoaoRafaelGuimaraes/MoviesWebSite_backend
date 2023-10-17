@@ -14,19 +14,16 @@ export const getUserInfo = async (request: FastifyRequest, reply: FastifyReply) 
     
     if (user) {
         
-        const user_record = {
+        const usersCollection = admin.firestore().collection('usuarios');
 
-            email: user.email,
-            nome: user.displayName,
-            telefone: user.phoneNumber,
-            id: user.uid
-        }
 
-        const user_json = JSON.stringify(user_record)
+        const userDocument = await usersCollection.doc(user.uid).get();
 
-        console.log(`Successfully fetched user data: `, user_json)
+    
 
-        reply.status(200).send(user_json);
+        console.log(`Successfully fetched user data: `, userDocument.data())
+
+        reply.status(200).send(userDocument.data());
 
     
     } else { //Nenhum usuário logado
