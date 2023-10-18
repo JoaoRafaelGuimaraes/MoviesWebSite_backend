@@ -2,9 +2,9 @@ import firebase from 'firebase/compat/app';
 import 'firebase/compat/auth';
 import 'firebase/compat/firestore';
 
-export const admin = require('firebase-admin');
+const admin = require('firebase-admin');
 
-export const serviceAccount = require('./projetotraineegrupob-firebase-adminsdk-4rj4w-a9a25d85b4.json');
+const serviceAccount = require('./projetotraineegrupob-firebase-adminsdk-4rj4w-a9a25d85b4.json');
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   databaseURL: 'https://projetotraineegrupob.firebaseio.com'
@@ -22,5 +22,7 @@ const firebaseConfig = {
 
 const app = firebase.initializeApp(firebaseConfig);
 
-export const auth = app.auth();
+const auth = app.auth();
 const firestore = app.firestore();
+
+export { admin, auth, serviceAccount };
