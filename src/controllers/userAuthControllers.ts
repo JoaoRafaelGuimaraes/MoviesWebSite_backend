@@ -64,7 +64,16 @@ export const registerEmailAndPassController = async (request: FastifyRequest, re
 
     } catch (error) {
         console.error('Erro ao registrar usuário:', error);
-        reply.status(409).send({ erro: 'Email já cadastrado' });
+
+        if (error.code === 'auth/email-already-in-use') {
+            reply.status(409).send({ erro: 'Email já cadastrado' });
+        } else if (error.code === 'auth/invalid-email') {
+            reply.status(400).send({ erro: 'Email mal formatado' });
+        } else if (error.code === 'auth/weak-password') {
+            reply.status(400).send({ erro: 'Senha com menos de 6 caracteres' });
+        } else {
+            reply.status(500).send({ erro: 'Erro desconhecido ao registrar usuário' });
+        }
     }
 };
 
