@@ -46,3 +46,5 @@ async function getTitulosByYearAndGenre(ano: number, genre: number | string) {
         throw error;
     }
 }
+
+export { getTitulosByYear, getTitulosByYearAndGenre };
