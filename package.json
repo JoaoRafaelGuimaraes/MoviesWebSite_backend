@@ -26,7 +26,10 @@
     "firebase": "^10.4.0",
     "firebase-admin": "^11.11.0",
     "firestore": "^1.1.6",
-    "sucrase": "^3.34.0",
+    "sucrase": "^3.34.0"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.1",
     "typescript": "^5.2.2"
   }
 }
