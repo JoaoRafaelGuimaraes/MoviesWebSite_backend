@@ -119,7 +119,6 @@ async function formatSeriesJSON(response) {
     return series;
 }
 
-// (5)
 async function getSeriesByYear(ano: number) {
     try {
         const response = await axios.get('https://api.themoviedb.org/3/discover/tv', {
@@ -140,7 +139,6 @@ async function getSeriesByYear(ano: number) {
     }
 }
 
-// (6)
 async function getSeriesByYearAndGenre(year: number, genre: number | string) {
     try {
         const response = await axios.get('https://api.themoviedb.org/3/discover/tv', {

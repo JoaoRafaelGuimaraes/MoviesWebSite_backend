@@ -27,7 +27,6 @@ dessa forma ela age como a função getXByYear, mas por motivos de organização
 import axios from 'axios';
 import dotenv from 'dotenv';
 
-import { getSeriesByYear /* (5) */, getSeriesByYearAndGenre /* (6) */ } from './serieControllers';
 import { Titulo } from '../models/tituloInterface';
 
 dotenv.config();
@@ -152,7 +151,6 @@ async function formatMoviesJSON(response) {
     return filmesFormatados;
 }
 
-// (3)
 async function getMoviesByYear(ano: number) {
     try {
         const response = await axios.get('https://api.themoviedb.org/3/discover/movie', {
@@ -173,53 +171,6 @@ async function getMoviesByYear(ano: number) {
     }
 }
 
-// (1)
-async function getTitulosByYear(ano: number) {
-    try {
-        // Use Promise.all para buscar filmes e séries simultaneamente
-        const [movies, series] = await Promise.all([getMoviesByYear(ano), getSeriesByYear(ano)]);
-
-        const intercalados: Titulo[] = [];
-
-        while (movies.length > 0 || series.length > 0) {
-            if (movies.length > 0) {
-                intercalados.push(movies.shift() as Titulo);
-            }
-            if (series.length > 0) {
-                intercalados.push(series.shift() as Titulo);
-            }
-        }
-
-        return intercalados;
-    } catch (error) {
-        throw error;
-    }
-}
-
-// (2)
-async function getTitulosByYearAndGenre(ano: number, genre: number | string) {
-    try {
-        const [movies, series] = await Promise.all([getMoviesByYearAndGenre(ano, genre), getSeriesByYearAndGenre(ano, genre)]);
-
-        const intercalados: Titulo[] = [];
-
-        while (movies.length > 0 || series.length > 0) {
-            if (movies.length > 0) {
-                intercalados.push(movies.shift() as Titulo);
-            }
-            if (series.length > 0) {
-                intercalados.push(series.shift() as Titulo);
-            }
-        }
-
-        return intercalados;
-
-    } catch (error) {
-        throw error;
-    }
-}
-
-// (4)
 async function getMoviesByYearAndGenre(year: number, genre: number | string) {
     try {
         const response = await axios.get('https://api.themoviedb.org/3/discover/movie', {
@@ -260,4 +211,4 @@ async function getAllMovieGenres() {
       }
 }
 
-export { getTitulosByYear, getTitulosByYearAndGenre, getMoviesByYear, getMoviesByYearAndGenre };
+export { getMoviesByYear, getMoviesByYearAndGenre };
