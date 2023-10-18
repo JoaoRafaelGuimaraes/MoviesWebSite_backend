@@ -19,8 +19,7 @@ export const loginEmailAndPassController = async (request: FastifyRequest, reply
         if (user) {
             try {
                 await auth.signInWithEmailAndPassword(email, senha);
-                reply.status(200).send({ mensagem: 'Login realizado' });
-
+                await auth.currentUser?.getIdToken(true).then((token) => reply.status(200).send({token: token}))
             } catch (error) {
                 reply.status(401).send({ erro: 'Senha incorreta' });  
             }
