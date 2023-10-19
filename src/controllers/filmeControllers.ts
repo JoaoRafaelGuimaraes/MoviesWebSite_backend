@@ -214,7 +214,7 @@ async function getMoviesByYearAndGenre(year: number, genre: number | string) {
     } catch (error) {
         throw error;
     }
-}
+}.........
 
 // Extra ------------------------------------------------------------------------
 
