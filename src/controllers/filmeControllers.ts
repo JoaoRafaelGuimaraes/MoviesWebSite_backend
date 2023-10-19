@@ -123,7 +123,7 @@ async function getPGRatingById(id: number) {
 async function formatMoviesJSON(response) {
     const filmesData = response.data.results;
     const filmesFormatados: Titulo[] = await Promise.all(filmesData.map(async (filmeData) => {
-        const { id, title, release_date, genre_ids, overview, poster_path } = filmeData;
+        const { id, title, release_date, genre_ids, overview, poster_path, backdrop_path } = filmeData;
 
         const [cast, runtime, pg] = await Promise.all([
             getCastById(id),
@@ -142,7 +142,8 @@ async function formatMoviesJSON(response) {
             classificacao_indicativa: pg,
             sinopse: overview,
             elenco: cast,
-            path_poster: poster_path,
+            poster_path: poster_path,
+            backdrop_path: backdrop_path
         };
 
         return filmeFormatado;
@@ -154,11 +155,11 @@ async function formatMoviesJSON(response) {
 async function getMoviesByYear(ano: number) {
     try {
         const response = await axios.get('https://api.themoviedb.org/3/discover/movie', {
-        params: {
-            api_key: process.env.TMDB_API_KEY,
-            language: language,
-            primary_release_year: ano,
-            sort_by: 'popularity.desc'
+            params: {
+                api_key: process.env.TMDB_API_KEY,
+                language: language,
+                primary_release_year: ano,
+                sort_by: 'popularity.desc'
             }
         });
 
@@ -174,11 +175,11 @@ async function getMoviesByYear(ano: number) {
 async function getMoviesByYearAndGenre(year: number, genre: number | string) {
     try {
         const response = await axios.get('https://api.themoviedb.org/3/discover/movie', {
-          params: {
-            api_key: process.env.TMDB_API_KEY,
-            language: language,
-            primary_release_year: year,
-            with_genres: genre
+            params: {
+                api_key: process.env.TMDB_API_KEY,
+                language: language,
+                primary_release_year: year,
+                with_genres: genre
           }
         });
     
@@ -190,6 +191,25 @@ async function getMoviesByYearAndGenre(year: number, genre: number | string) {
         throw error;
     }
 }
+
+async function getSimilarMoviesById(id: number) {
+    try {
+        const response = await axios.get('https://api.themoviedb.org/3/movie/' + id + '/similar', {
+            params: {
+                api_key: process.env.TMDB_API_KEY,
+                language: language
+            }
+        });
+
+        const movies = await formatMoviesJSON(response);
+
+        return movies;
+
+    } catch (error) {
+        throw error;
+    }
+}
+
 
 // Extra ------------------------------------------------------------------------
 
@@ -211,4 +231,4 @@ async function getAllMovieGenres() {
       }
 }
 
-export { getMoviesByYear, getMoviesByYearAndGenre };
+export { getMoviesByYear, getMoviesByYearAndGenre, getSimilarMoviesById };

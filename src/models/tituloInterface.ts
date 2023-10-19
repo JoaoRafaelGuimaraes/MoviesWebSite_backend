@@ -7,5 +7,6 @@ export interface Titulo {
     classificacao_indicativa: string;
     sinopse: string;
     elenco: string[];
-    path_poster: string;
+    poster_path: string;
+    backdrop_path: string;
 }

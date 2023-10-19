@@ -95,22 +95,25 @@ async function formatSeriesJSON(response) {
     const seriesData = response.data.results;
 
     const series: Titulo[] = await Promise.all(seriesData.map(async (serieData) => {
-        const { id, name, first_air_date, genre_ids, overview, poster_path } = serieData;
+        const { id, name, first_air_date, genre_ids, overview, poster_path, backdrop_path } = serieData;
 
         const elenco = await getCastById(id);
         const numSeasons = await getNumSeasonsById(id);
         const pg = await getPGRatingById(id);
 
+        const temp = numSeasons > 1 ? ' temporadas' : ' temporada';
+
         const serieFormatada: Titulo = {
             id: id,
             titulo: name,
             ano: first_air_date.slice(0, 4),
-            duracao: numSeasons + ' temporadas',
+            duracao: numSeasons + temp,
             generos: genre_ids.map((genre) => genreMap[genre]),
             classificacao_indicativa: pg,
             sinopse: overview,
             elenco: elenco,
-            path_poster: poster_path
+            poster_path: poster_path,
+            backdrop_path: backdrop_path
         };
 
         return serieFormatada;
@@ -159,6 +162,24 @@ async function getSeriesByYearAndGenre(year: number, genre: number | string) {
     }
 }
 
+async function getSimilarSeriesById(id: number) {
+    try {
+        const response = await axios.get('https://api.themoviedb.org/3/tv/' + id + '/similar', {
+            params: {
+                api_key: process.env.TMDB_API_KEY,
+                language: language
+            }
+        });
+
+        const series = await formatSeriesJSON(response);
+
+        return series;
+
+    } catch (error) {
+        throw error;
+    }
+}
+
 // Extra ------------------------------------------------------------------------
 
 async function getAllSeriesGenres() {
@@ -179,4 +200,4 @@ async function getAllSeriesGenres() {
     }
 }
 
-export { getSeriesByYear, getSeriesByYearAndGenre };
+export { getSeriesByYear, getSeriesByYearAndGenre, getSimilarSeriesById };
