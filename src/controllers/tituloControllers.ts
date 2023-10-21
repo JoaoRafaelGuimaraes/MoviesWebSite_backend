@@ -58,10 +58,11 @@ async function postTitulosAsFavorite (request: FastifyRequest, reply: FastifyRep
         const { filme_id } = request.body as postFavoriteBody;
 
         if (user){
-            const favoritesCollection = admin.firestore().collection("favoritos")
-            await favoritesCollection.doc(`${user.uid}_${filme_id}`).set({usuario_uid: user.uid, filme_id: filme_id})
 
-            reply.status(200).send({ mensagem: 'Titulo adicionado aos favoritos' });
+            await admin.firestore().collection("usuarios").doc(user.uid).collection("favoritos").doc(filme_id).set({id: filme_id})
+            
+            reply.status(200).send({ mensagem: 'Titulo adicionado aos favoritos'});
+            
         }
 
         else{
