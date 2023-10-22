@@ -1,6 +1,7 @@
 import Fastify from 'fastify';
 import userAuthRoutes from './routes/userAuthRoutes';
 import userInfoRoutes from './routes/userInfoRoutes';
+import userFavoritesRoutes from './routes/userFavoritesRoutes';
 
 export const server = Fastify({
     logger: false,
@@ -9,6 +10,8 @@ export const server = Fastify({
 // Rotas
 userAuthRoutes(server);
 userInfoRoutes(server);
+userFavoritesRoutes(server);
+
 
 server.listen({ port: 3333 }, function (error, address) {
     if (error) {
