@@ -1,7 +1,11 @@
 import { getMoviesByYear, getMoviesByYearAndGenre } from "./filmeControllers";
 import { getSeriesByYear, getSeriesByYearAndGenre } from "./serieControllers";
 
+import { auth, admin } from '../firebase/firebaseConfig';
+import { FastifyRequest, FastifyReply } from 'fastify';
+
 import { Titulo } from "../models/tituloInterface";
+import { postFavoriteBody } from "../models/postFavoriteBody";
 
 async function getTitulosByYear(ano: number) {
     try {
@@ -47,4 +51,29 @@ async function getTitulosByYearAndGenre(ano: number, genre: number | string) {
     }
 }
 
-export { getTitulosByYear, getTitulosByYearAndGenre };
+async function postTitulosAsFavorite (request: FastifyRequest, reply: FastifyReply) {
+    try{
+
+        const user = await auth.currentUser;
+        const { filme_id } = request.body as postFavoriteBody;
+
+        if (user){
+
+            await admin.firestore().collection("usuarios").doc(user.uid).collection("favoritos").doc(filme_id).set({id: filme_id})
+            
+            reply.status(200).send({ mensagem: 'Titulo adicionado aos favoritos'});
+            
+        }
+
+        else{
+            reply.status(401).send({erro: "Nenhum usuário logado"});
+        }
+    }
+
+    catch (error) {
+        console.error('Erro ao adicionar favorito:', error);
+        reply.status(500).send({ erro: 'Erro ao adicionar favorito: ', error });
+    }   
+}
+
+export { getTitulosByYear, getTitulosByYearAndGenre, postTitulosAsFavorite };
