@@ -1,8 +1,25 @@
-import { getMoviesByYear, getMoviesByYearAndGenre } from "./filmeControllers";
-import { getSeriesByYear, getSeriesByYearAndGenre } from "./serieControllers";
+import { getMoviesByYear, getMoviesByYearAndGenre, getMovieByID } from "./filmeControllers";
+import { getSeriesByYear, getSeriesByYearAndGenre, getSerieByID } from "./serieControllers";
 
 import { Titulo } from "../models/tituloInterface";
 
+
+async function getMediaType(mediaID: any)
+{
+    try{
+        const movie = getMovieByID(mediaID)
+        return movie;
+    }catch(error){
+        try{
+            const serie = getSerieByID(mediaID)
+            return serie
+        }catch(tverror){
+            console.error('MediaID não encontrado!')
+            return 'Título não encontrado';
+        }
+    }
+
+}
 async function getTitulosByYear(ano: number) {
     try {
         // Use Promise.all para buscar filmes e séries simultaneamente
@@ -47,4 +64,4 @@ async function getTitulosByYearAndGenre(ano: number, genre: number | string) {
     }
 }
 
-export { getTitulosByYear, getTitulosByYearAndGenre };
+export { getTitulosByYear, getTitulosByYearAndGenre, getMediaType };
