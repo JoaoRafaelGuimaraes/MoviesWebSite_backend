@@ -22,6 +22,7 @@ async function getMediaType(mediaID: any)
     }
 
 }
+
 async function getTitulosByYear(ano: number) {
     try {
         // Use Promise.all para buscar filmes e séries simultaneamente
