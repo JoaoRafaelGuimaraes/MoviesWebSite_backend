@@ -7,15 +7,17 @@ import { Titulo } from "../models/tituloInterface";
 async function getMediaType(mediaID: any)
 {
     try{
-        const movie = getMovieByID(mediaID)
+        const movie = await getMovieByID(mediaID)
         return movie;
     }catch(error){
-        try{
-            const serie = getSerieByID(mediaID)
-            return serie
-        }catch(tverror){
-            console.error('MediaID não encontrado!')
-            return 'Título não encontrado';
+        if (error.response && error.response.status === 404) {
+            try{
+                const serie = await getSerieByID(mediaID)
+                return serie
+            }catch(tverror){
+                console.error('MediaID não encontrado!')
+                return 'Título não encontrado';
+            }
         }
     }
 

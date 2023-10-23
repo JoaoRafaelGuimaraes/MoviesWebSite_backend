@@ -37,7 +37,7 @@ async function getSerieByID (serieID: any){
             }
         });
 
-        const movies = await formatSeriesJSON(response);
+        const movies = await formatAserie(response);
         return movies;
     } catch (error) {
         throw error;
@@ -109,6 +109,37 @@ async function getPGRatingById(id: number) {
         throw error;
       }
   }
+
+
+  async function formatAserie(response){
+    
+    const serieData = response.data
+    
+    
+    const { id, name, first_air_date, genres, overview, poster_path, backdrop_path } = serieData;
+
+        const elenco = await getCastById(id);
+        const numSeasons = await getNumSeasonsById(id);
+        const pg = await getPGRatingById(id);
+
+        const temp = numSeasons > 1 ? ' temporadas' : ' temporada';
+
+        const serieFormatada: Titulo = {
+            id: id,
+            titulo: name,
+            ano: first_air_date.slice(0, 4),
+            duracao: numSeasons + temp,
+            generos: genres.map(genre => genreMap[genre.id.toString()]),
+            classificacao_indicativa: pg,
+            sinopse: overview,
+            elenco: elenco,
+            poster_path: poster_path,
+            backdrop_path: backdrop_path
+        };
+
+        return serieFormatada;
+}
+
 
 async function formatSeriesJSON(response) {
     const seriesData = response.data.results;

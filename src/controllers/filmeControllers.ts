@@ -146,7 +146,7 @@ async function formatAmovie(response){
     
     
     const { id, title, release_date, genres, overview, poster_path, backdrop_path } = filmeData;
-    console.log(genres)
+   
         const [cast, runtime, pg] = await Promise.all([
             getCastById(id),
             getRuntimeById(id),
