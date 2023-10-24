@@ -19,6 +19,7 @@
   },
   "homepage": "https://gitlab.com/cati-jr/trainees-2023/grupo-b/backend#readme",
   "dependencies": {
+    "@types/dotenv": "^8.2.0",
     "axios": "^1.5.1",
     "dotenv": "^16.3.1",
     "fastify": "^4.24.0",

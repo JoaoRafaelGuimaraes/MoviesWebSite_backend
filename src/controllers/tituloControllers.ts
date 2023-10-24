@@ -67,4 +67,27 @@ async function getTitulosByYearAndGenre(ano: number, genre: number | string) {
     }
 }
 
-export { getTitulosByYear, getTitulosByYearAndGenre, getMediaType };
+//Função adicionada: retornar apenas uma string que indica se é um filme ou série
+//diferente de getMediaType que retorna todos os detalhes de um titulo, dificultando
+//para pegar apenas o tipo de midia do titulo // coloquei tv ao invés de serie por causa da API TMDB
+async function isMovieOrSerie(idTitulo: number): Promise<string> {
+    try {
+        await getMovieByID(idTitulo);
+        return "movie"; //se encontrar com esse ID nessa função, é um filme!
+    } catch (error) {
+        if (error.response && error.response.status === 404) {
+            // se retornar 404, not found, pode ser uma série
+            try {
+                await getSerieByID(idTitulo);
+                return "tv"; // se der certo na função de pegar série, é uma série
+            } catch (tverror) {
+                return "not found"; //se nenhuma das duas der certo, não é filme nem série, nem exite
+            }
+        } else {
+            throw error; //para erros diferentes do Not Found
+        }
+    }
+}
+
+
+export { getTitulosByYear, getTitulosByYearAndGenre, getMediaType, isMovieOrSerie };
