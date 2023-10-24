@@ -1,8 +1,11 @@
+import { getMoviesByYear, getMoviesByYearAndGenre, getMovieByID } from "./filmeControllers";
+import { getSeriesByYear, getSeriesByYearAndGenre, getSerieByID } from "./serieControllers";
+
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { auth, admin } from '../firebase/firebaseConfig';
 
 import { getMoviesByYear, getMoviesByYearAndGenre } from "./filmeControllers";
-import { getSeriesByYear, getSeriesByYearAndGenre } from "./serieControllers";
+import { getSeriesByYear, getSeriesByYearAndGenre } from "./serieControllers"
 
 import { auth, admin } from '../firebase/firebaseConfig';
 import { FastifyRequest, FastifyReply } from 'fastify';
@@ -10,6 +13,26 @@ import { FastifyRequest, FastifyReply } from 'fastify';
 import { Titulo } from "../models/tituloInterface";
 import { FavoriteBody } from '../models/favoriteBody';
 import { postFavoriteBody } from "../models/postFavoriteBody";
+
+
+async function getMediaType(mediaID: any)
+{
+    try{
+        const movie = await getMovieByID(mediaID)
+        return movie;
+    }catch(error){
+        if (error.response && error.response.status === 404) {
+            try{
+                const serie = await getSerieByID(mediaID)
+                return serie
+            }catch(tverror){
+                console.error('MediaID não encontrado!')
+                return 'Título não encontrado';
+            }
+        }
+    }
+
+}
 
 async function getTitulosByYear(ano: number) {
     try {
@@ -111,4 +134,4 @@ async function postTitulosAsFavorite (request: FastifyRequest, reply: FastifyRep
     }   
 }
 
-export { getTitulosByYear, getTitulosByYearAndGenre, postTitulosAsFavorite, removeTitleFromFavorites };
+export { getTitulosByYear, getTitulosByYearAndGenre, postTitulosAsFavorite, removeTitleFromFavorites, getMediaType };

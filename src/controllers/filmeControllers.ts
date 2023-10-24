@@ -54,6 +54,24 @@ const genreMap = {
     '37': 'Faroeste'
 };
 
+
+ async function getMovieByID (movieID: any){
+
+    try {
+        const response = await axios.get('https://api.themoviedb.org/3/movie/' + movieID, {
+            params: {
+                api_key: process.env.TMDB_API_KEY,
+                language: language
+            }
+        });
+        
+        const movies = await formatAmovie(response);
+        return movies;
+    } catch (error) {
+        throw error;
+    }
+}
+
 async function getCastById(id: number) {
     try {
         const response = await axios.get('https://api.themoviedb.org/3/movie/' + id + '/credits', {
@@ -119,6 +137,39 @@ async function getPGRatingById(id: number) {
       throw error;
     }
 }
+
+
+
+async function formatAmovie(response){
+    
+    const filmeData = response.data
+    
+    
+    const { id, title, release_date, genres, overview, poster_path, backdrop_path } = filmeData;
+   
+        const [cast, runtime, pg] = await Promise.all([
+            getCastById(id),
+            getRuntimeById(id),
+            getPGRatingById(id)
+        ]);
+
+        const mappedGenres = genres.map(genre => genreMap[genre.id.toString()]);
+
+        const filmeFormatado: Titulo = {
+            id: id,
+            titulo: title,
+            ano: release_date.substring(0, 4),
+            duracao: runtime + ' min',
+            generos: mappedGenres,
+            classificacao_indicativa: pg,
+            sinopse: overview,
+            elenco: cast,
+            poster_path: poster_path,
+            backdrop_path: backdrop_path
+        }  
+        return filmeFormatado;
+}
+
 
 async function formatMoviesJSON(response) {
     const filmesData = response.data.results;
@@ -231,4 +282,4 @@ async function getAllMovieGenres() {
       }
 }
 
-export { getMoviesByYear, getMoviesByYearAndGenre, getSimilarMoviesById };
+export { getMoviesByYear, getMoviesByYearAndGenre, getSimilarMoviesById, getMovieByID };
