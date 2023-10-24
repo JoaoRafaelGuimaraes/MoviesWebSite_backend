@@ -51,7 +51,7 @@ async function getTitulosByYearAndGenre(ano: number, genre: number | string) {
     }
 }
 
-export const removeTitleFromFavorites = async (request: FastifyRequest, reply: FastifyReply) => {
+const removeTitleFromFavorites = async (request: FastifyRequest, reply: FastifyReply) => {
     const { id } = request.body as FavoriteBody;
 
     try {
@@ -82,4 +82,4 @@ export const removeTitleFromFavorites = async (request: FastifyRequest, reply: F
     }
 };
 
-export { getTitulosByYear, getTitulosByYearAndGenre };
+export { getTitulosByYear, getTitulosByYearAndGenre, removeTitleFromFavorites };
