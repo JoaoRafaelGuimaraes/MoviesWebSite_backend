@@ -3,10 +3,12 @@ import dotenv from 'dotenv';
 
 import { Titulo } from '../models/tituloInterface';
 
-dotenv.config();
-const language = 'pt-BR'
+import { language } from './tituloAux';
+import { getSerieCastById, getSerieNumSeasonsById, getSeriePGRatingById } from './tituloAux';
 
-const genreMap = {
+dotenv.config();
+
+const serieGenreMap = {
     '10759': 'Ação & Aventura',
     '16': 'Animação',
     '35': 'Comédia',
@@ -25,151 +27,41 @@ const genreMap = {
     '37': 'Faroeste'
 };
 
-
-
-async function getSerieByID (serieID: any){
-
-    try {
-        const response = await axios.get('https://api.themoviedb.org/3/tv/' + serieID, {
-            params: {
-                api_key: process.env.TMDB_API_KEY,
-                language: language
-            }
-        });
-
-        const movies = await formatAserie(response);
-        return movies;
-    } catch (error) {
-        throw error;
-    }
-}
-
-async function getCastSerieById(id: number) {
-    try {
-        const response = await axios.get('https://api.themoviedb.org/3/tv/' + id + '/credits', {
-            params: {
-                api_key: process.env.TMDB_API_KEY,
-                language: language
-            }
-        });
-
-        const elenco = response.data.cast.slice(0, 4).map((ator) => ator.name);;
-
-        return elenco;
-        
-    } catch (error) {
-        throw error;
-    }
-}
-
-async function getNumSeasonsById(id: number) {
-    try {
-        const response = await axios.get('https://api.themoviedb.org/3/tv/' + id, {
-            params: {
-                api_key: process.env.TMDB_API_KEY,
-                language: language
-            }
-        });
-
-        const numSeasons = response.data.number_of_seasons;
-
-        return numSeasons;
-        
-    } catch (error) {
-        throw error;
-    }
-}
-
-async function getPGRatingById(id: number) {
-    try {
-        const response = await axios.get('https://api.themoviedb.org/3/tv/' + id + '/content_ratings', {
-          params: {
+async function getSerieByID(id: number) {
+    const response = await axios.get('https://api.themoviedb.org/3/tv/' + id, {
+        params: {
             api_key: process.env.TMDB_API_KEY,
-            language: language,
-          }
-        });
-    
-        if (response.data.results && response.data.results.length > 0) {
-          // Tenta encontrar a classificação indicativa para o Brasil
-          const certification = response.data.results.find((result) => result.iso_3166_1 === 'BR');
-    
-          if (certification) {
-            return certification.rating;
-          }
+            language: language
         }
+    });
     
-        // Se não encontrou a classificação para o Brasil, retorna a primeira da lista
-        const firstCertification = response.data.results[0];
+    // Informações da rota de Details
+    const { name, first_air_date, genres, overview, poster_path, backdrop_path } = response.data;
+   
+    // Informações de outras rotas
+    const [cast, seasons, pg] = await Promise.all([
+        getSerieCastById(id),
+        getSerieNumSeasonsById(id),
+        getSeriePGRatingById(id)
+    ]);
 
-        if (firstCertification && firstCertification.rating) {
-            return firstCertification.rating;
-        }
-    
-      } catch (error) {
-        throw error;
-      }
-  }
+    // Mapeia os gêneros pra strings
+    const generos = genres.map(genre => serieGenreMap[genre.id.toString()]);
 
+    const serie: Titulo = {
+        id: id,
+        titulo: name,
+        ano: first_air_date.slice(0, 4),
+        duracao: seasons,
+        generos: generos,
+        classificacao_indicativa: pg,
+        sinopse: overview,
+        elenco: cast,
+        poster_path: poster_path,
+        backdrop_path: backdrop_path
+    }
 
-  async function formatAserie(response){
-    
-    const serieData = response.data
-    
-    
-    const { id, name, first_air_date, genres, overview, poster_path, backdrop_path } = serieData;
-
-        const elenco = await getCastSerieById(id);
-        const numSeasons = await getNumSeasonsById(id);
-        const pg = await getPGRatingById(id);
-
-        const temp = numSeasons > 1 ? ' temporadas' : ' temporada';
-
-        const serieFormatada: Titulo = {
-            id: id,
-            titulo: name,
-            ano: first_air_date.slice(0, 4),
-            duracao: numSeasons + temp,
-            generos: genres.map(genre => genreMap[genre.id.toString()]),
-            classificacao_indicativa: pg,
-            sinopse: overview,
-            elenco: elenco,
-            poster_path: poster_path,
-            backdrop_path: backdrop_path
-        };
-
-        return serieFormatada;
-}
-
-
-async function formatSeriesJSON(response) {
-    const seriesData = response.data.results;
-
-    const series: Titulo[] = await Promise.all(seriesData.map(async (serieData) => {
-        const { id, name, first_air_date, genre_ids, overview, poster_path, backdrop_path } = serieData;
-
-        const elenco = await getCastSerieById(id);
-        const numSeasons = await getNumSeasonsById(id);
-        const pg = await getPGRatingById(id);
-
-        const temp = numSeasons > 1 ? ' temporadas' : ' temporada';
-
-        const serieFormatada: Titulo = {
-            id: id,
-            titulo: name,
-            ano: first_air_date.slice(0, 4),
-            duracao: numSeasons + temp,
-            generos: genre_ids.map((genre) => genreMap[genre]),
-            classificacao_indicativa: pg,
-            sinopse: overview,
-            elenco: elenco,
-            poster_path: poster_path,
-            backdrop_path: backdrop_path
-        };
-
-        return serieFormatada;
-    }));
-
-    return series;
+    return serie;
 }
 
 async function getSeriesByYear(ano: number) {
@@ -183,7 +75,17 @@ async function getSeriesByYear(ano: number) {
             }
         });
     
-        const series = await formatSeriesJSON(response);
+        const series: any[] = [];
+
+        response.data.forEach(serie => {
+            const titulo = getSerieByID(serie.id);
+
+            if (titulo) {
+                series.push(titulo);
+            } else {
+                throw new Error('Erro ao buscar título');
+            }
+        });
 
         return series;
     
@@ -199,11 +101,22 @@ async function getSeriesByYearAndGenre(year: number, genre: number | string) {
             api_key: process.env.TMDB_API_KEY,
             language: language,
             primary_release_year: year,
-            with_genres: genre
+            with_genres: genre,
+            sort_by: 'popularity.desc'
           }
         });
     
-        const series = await formatSeriesJSON(response);
+        const series: any[] = [];
+
+        response.data.forEach(serie => {
+            const titulo = getSerieByID(serie.id);
+
+            if (titulo) {
+                series.push(titulo);
+            } else {
+                throw new Error('Erro ao buscar título');
+            }
+        });
 
         return series;
 
@@ -221,7 +134,17 @@ async function getSimilarSeriesById(id: number) {
             }
         });
 
-        const series = await formatSeriesJSON(response);
+        const series: any[] = [];
+
+        response.data.forEach(serie => {
+            const titulo = getSerieByID(serie.id);
+
+            if (titulo) {
+                series.push(titulo);
+            } else {
+                throw new Error('Erro ao buscar título');
+            }
+        });
 
         return series;
 
@@ -230,24 +153,4 @@ async function getSimilarSeriesById(id: number) {
     }
 }
 
-// Extra ------------------------------------------------------------------------
-
-async function getAllSeriesGenres() {
-    try {
-        const response = await axios.get('https://api.themoviedb.org/3/genre/tv/list', {
-            params: {
-                api_key: process.env.TMDB_API_KEY,
-                language: language
-            }
-        });
-        
-        const genres = response.data.genres;
-
-        return genres;
-
-    } catch (error) {
-        throw error;
-    }
-}
-
-export { getSeriesByYear, getSeriesByYearAndGenre, getSimilarSeriesById, getSerieByID, getCastSerieById, getNumSeasonsById};
+export { getSerieByID, getSeriesByYear, getSeriesByYearAndGenre, getSimilarSeriesById };

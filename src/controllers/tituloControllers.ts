@@ -1,31 +1,31 @@
-import { getMoviesByYear, getMoviesByYearAndGenre, getMovieByID } from "./filmeControllers";
-import { getSeriesByYear, getSeriesByYearAndGenre, getSerieByID } from "./serieControllers";
-
 import { auth, admin } from '../firebase/firebaseConfig';
 import { FastifyRequest, FastifyReply } from 'fastify';
 
+import { getMoviesByYear, getMoviesByYearAndGenre, getMovieByID } from "./filmeControllers";
+import { getSeriesByYear, getSeriesByYearAndGenre, getSerieByID } from "./serieControllers";
+
 import { Titulo } from "../models/tituloInterface";
-import { FavoriteBody } from '../models/favoriteBody';
-import { postFavoriteBody } from "../models/postFavoriteBody";
+import { PostFavoriteBody } from '../models/postFavoriteBody';
+import { GetFavoriteBody } from "../models/getFavoriteBody";
+import { RemoveFavoriteParams } from '../models/removeFavoriteParams';
 
+export async function getTituloInfo(id: number, tipo: string) {
+    try {
+        if (tipo === 'filme') {
+            const filme = await getMovieByID(id);
+            return filme;
 
-async function getMediaType(mediaID: any)
-{
-    try{
-        const movie = await getMovieByID(mediaID)
-        return movie;
-    }catch(error){
-        if (error.response && error.response.status === 404) {
-            try{
-                const serie = await getSerieByID(mediaID)
-                return serie
-            }catch(tverror){
-                console.error('MediaID não encontrado!')
-                return 'Título não encontrado';
-            }
+        } else if (tipo === 'serie') {
+            const serie = await getSerieByID(id);
+            return serie;
+
+        } else {
+            throw new Error('Tipo de título inválido');
         }
+        
+    } catch (error) {
+        throw error;
     }
-
 }
 
 async function getTitulosByYear(ano: number) {
@@ -45,6 +45,7 @@ async function getTitulosByYear(ano: number) {
         }
 
         return intercalados;
+
     } catch (error) {
         throw error;
     }
@@ -72,30 +73,40 @@ async function getTitulosByYearAndGenre(ano: number, genre: number | string) {
     }
 }
 
-//Função adicionada: retornar apenas uma string que indica se é um filme ou série
-//diferente de getMediaType que retorna todos os detalhes de um titulo, dificultando
-//para pegar apenas o tipo de midia do titulo // coloquei tv ao invés de serie por causa da API TMDB
-async function isMovieOrSerie(idTitulo: number): Promise<string> {
+// FAVORITOS ---------------------------------------------------------------------------------------------------------------
+
+async function postTituloAsFavorite(request: FastifyRequest, reply: FastifyReply) {
     try {
-        await getMovieByID(idTitulo);
-        return "movie"; //se encontrar com esse ID nessa função, é um filme!
-    } catch (error) {
-        if (error.response && error.response.status === 404) {
-            // se retornar 404, not found, pode ser uma série
-            try {
-                await getSerieByID(idTitulo);
-                return "tv"; // se der certo na função de pegar série, é uma série
-            } catch (tverror) {
-                return "not found"; //se nenhuma das duas der certo, não é filme nem série, nem exite
+        const user = await auth.currentUser;
+        const { id, tipo, generos } = request.body as PostFavoriteBody;
+
+        if (user) {
+            const favoritoRef = admin.firestore().collection('usuarios').doc(user.uid).collection('favoritos').doc(id);
+
+            // Verifica se o documento já existe antes de adicioná-lo
+            const favoritoPossivel = await favoritoRef.get();
+
+            if (!favoritoPossivel.exists) {
+                await favoritoRef.set({ id, tipo, generos });
+
+                reply.status(200).send({ mensagem: 'Título adicionado aos favoritos' });
+
+            } else {
+                reply.status(400).send({ erro: 'Título já está nos favoritos' });
             }
+
         } else {
-            throw error; //para erros diferentes do Not Found
+            reply.status(401).send({ erro: 'Nenhum usuário logado' });
         }
+
+    } catch (error) {
+        console.error('Erro ao adicionar favorito:', error);
+        reply.status(500).send({ erro: 'Erro ao adicionar favorito: ' + error.message });
     }
 }
 
-const removeTitleFromFavorites = async (request: FastifyRequest, reply: FastifyReply) => {
-    const { id } = request.body as FavoriteBody;
+const removeTituloFromFavorites = async (request: FastifyRequest, reply: FastifyReply) => {
+    const { id } = request.body as RemoveFavoriteParams;
 
     try {
         // Obtém o usuário atual
@@ -105,11 +116,11 @@ const removeTitleFromFavorites = async (request: FastifyRequest, reply: FastifyR
             const uid = user.uid;
 
             // Acessa a subcoleção 'favoritos' do usuário
-            const favoritosRef = admin.firestore().collection('usuarios').doc(uid).collection('favoritos');
+            const favoritosRef = admin.firestore().collection('usuarios').doc(uid.toString()).collection('favoritos');
 
             try {
                 // Remove o documento do título da subcoleção 'favoritos'
-                await favoritosRef.doc(`${id}`).delete();
+                await favoritosRef.doc(id.toString()).delete();
 
                 reply.status(200).send({ mensagem: 'Título removido dos favoritos com sucesso' });
 
@@ -125,29 +136,51 @@ const removeTitleFromFavorites = async (request: FastifyRequest, reply: FastifyR
     }
 };
 
-async function postTitulosAsFavorite (request: FastifyRequest, reply: FastifyReply) {
-    try{
+const getFavorites = async (request: FastifyRequest, reply: FastifyReply) => {
+    const { tipo, genero } = request.query as GetFavoriteBody;
 
-        const user = await auth.currentUser;
-        const { filme_id } = request.body as postFavoriteBody;
+    const user = await auth.currentUser;
 
-        if (user){
-
-            await admin.firestore().collection("usuarios").doc(user.uid).collection("favoritos").doc(filme_id).set({id: filme_id})
-            
-            reply.status(200).send({ mensagem: 'Titulo adicionado aos favoritos'});
-            
-        }
-
-        else{
-            reply.status(401).send({erro: "Nenhum usuário logado"});
-        }
+    if (!user) {
+        reply.status(401).send({ erro: 'Usuário não autenticado' });
+        return;
     }
 
-    catch (error) {
-        console.error('Erro ao adicionar favorito:', error);
-        reply.status(500).send({ erro: 'Erro ao adicionar favorito: ', error });
-    }   
-}
+    // Acessa a subcoleção de usuário 'favoritos'
+    const favoritosRef = admin.firestore().collection('usuarios').doc(user.uid.toString()).collection('favoritos');
 
-export { getTitulosByYear, getTitulosByYearAndGenre, postTitulosAsFavorite, removeTitleFromFavorites, getMediaType, isMovieOrSerie };
+    try {
+        let query = favoritosRef;
+
+        // Aplicar filtro de tipo se 'tipo' for definido
+        if (tipo !== undefined) {
+            query = query.where('tipo', '==', tipo);
+        }
+
+        // Aplicar filtro de gênero se 'genero' for definido
+        if (genero !== undefined) {
+            query = query.where('generos', 'array-contains', genero);
+        }
+
+        const favoritos = await query.get();
+
+        const titulosPromises: Promise<any>[] = [];
+
+        favoritos.forEach(favorito => {
+            const tituloInfoPromise = getTituloInfo(favorito.data().id, favorito.data().tipo);
+            titulosPromises.push(tituloInfoPromise);
+        });
+
+        // Aguardar todas as promises serem resolvidas
+        const titulos = await Promise.all(titulosPromises);
+
+        reply.status(200).send(titulos);
+
+    } catch (error) {
+        console.error('Erro ao buscar favoritos:', error);
+        reply.status(500).send({ erro: 'Erro ao buscar favoritos: ' + error.message });
+    }
+};
+
+export { getTitulosByYear, getTitulosByYearAndGenre, 
+    postTituloAsFavorite, removeTituloFromFavorites, getFavorites };
