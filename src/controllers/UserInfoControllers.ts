@@ -24,7 +24,7 @@ export const getUserInfo = async (request: FastifyRequest, reply: FastifyReply) 
     } else { //Nenhum usuário logado
  
         console.error('Nenhum usuário logado');
-        reply.status(500).send({ erro: 'Nenhum usuário logado' });
+        reply.status(401).send({ erro: 'Nenhum usuário logado' });
     }
 }
 
