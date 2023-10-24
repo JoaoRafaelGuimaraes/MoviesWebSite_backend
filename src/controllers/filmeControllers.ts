@@ -282,4 +282,4 @@ async function getAllMovieGenres() {
       }
 }
 
-export { getMoviesByYear, getMoviesByYearAndGenre, getSimilarMoviesById, getMovieByID };
+export { getMoviesByYear, getMoviesByYearAndGenre, getSimilarMoviesById, getMovieByID, getRuntimeById, getCastById};

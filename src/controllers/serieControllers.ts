@@ -44,7 +44,7 @@ async function getSerieByID (serieID: any){
     }
 }
 
-async function getCastById(id: number) {
+async function getCastSerieById(id: number) {
     try {
         const response = await axios.get('https://api.themoviedb.org/3/tv/' + id + '/credits', {
             params: {
@@ -118,7 +118,7 @@ async function getPGRatingById(id: number) {
     
     const { id, name, first_air_date, genres, overview, poster_path, backdrop_path } = serieData;
 
-        const elenco = await getCastById(id);
+        const elenco = await getCastSerieById(id);
         const numSeasons = await getNumSeasonsById(id);
         const pg = await getPGRatingById(id);
 
@@ -147,7 +147,7 @@ async function formatSeriesJSON(response) {
     const series: Titulo[] = await Promise.all(seriesData.map(async (serieData) => {
         const { id, name, first_air_date, genre_ids, overview, poster_path, backdrop_path } = serieData;
 
-        const elenco = await getCastById(id);
+        const elenco = await getCastSerieById(id);
         const numSeasons = await getNumSeasonsById(id);
         const pg = await getPGRatingById(id);
 
@@ -250,4 +250,4 @@ async function getAllSeriesGenres() {
     }
 }
 
-export { getSeriesByYear, getSeriesByYearAndGenre, getSimilarSeriesById, getSerieByID };
+export { getSeriesByYear, getSeriesByYearAndGenre, getSimilarSeriesById, getSerieByID, getCastSerieById, getNumSeasonsById};
