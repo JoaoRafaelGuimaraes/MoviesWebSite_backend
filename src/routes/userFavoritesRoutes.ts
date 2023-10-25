@@ -1,4 +1,4 @@
-import { postTituloAsFavorite, removeTituloFromFavorites, getFavorites } from "../controllers/tituloControllers";
+import { postTituloAsFavorite, removeTituloFromFavorites, getFavorites } from "../controllers/favoritoControllers";
 
 export default (server) => {
     server.post('/postFavorite', postTituloAsFavorite);

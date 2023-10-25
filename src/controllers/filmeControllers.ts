@@ -67,52 +67,32 @@ async function getMovieByID(id: number) {
     return movie;
 }
 
-async function getMoviesByYear(ano: number) {
+async function getMoviesByYearAndGenre(year: number | undefined, genre: number | string | undefined) {
     try {
+        const params: Record<string, any> = {
+            api_key: process.env.TMDB_API_KEY,
+            language: language,
+            sort_by: 'popularity.desc'
+        };
+
+        // Adicione os parâmetros year e genre somente se eles forem definidos
+        if (year !== undefined) {
+            params.primary_release_year = year;
+        }
+        if (genre !== undefined) {
+            // Mapeia o genero pra o id correspondente
+            const genreId = Object.keys(movieGenreMap).find(key => movieGenreMap[key] === genre);
+            params.with_genres = genreId;
+        }
+
         const response = await axios.get('https://api.themoviedb.org/3/discover/movie', {
-            params: {
-                api_key: process.env.TMDB_API_KEY,
-                language: language,
-                primary_release_year: ano,
-                sort_by: 'popularity.desc'
-            }
+            params
         });
 
         const movies: any[] = [];
 
-        response.data.forEach(movie => {
+        response.data.results.forEach(movie => {
             const titulo = getMovieByID(movie.id);
-
-            if (titulo) {
-                movies.push(titulo);
-            } else {
-                throw new Error('Erro ao buscar título');
-            }
-        });
-
-        return movies;
-
-    } catch (error) {
-        throw error;
-    }
-}
-
-async function getMoviesByYearAndGenre(year: number, genre: number | string) {
-    try {
-        const response = await axios.get('https://api.themoviedb.org/3/discover/movie', {
-            params: {
-                api_key: process.env.TMDB_API_KEY,
-                language: language,
-                primary_release_year: year,
-                with_genres: genre,
-                sort_by: 'popularity.desc'
-          }
-        });
-    
-        const movies: any[] = [];
-
-        response.data.forEach(movie => {
-            const titulo = getMovieByID(movie.id);;
 
             if (titulo) {
                 movies.push(titulo);
@@ -139,7 +119,7 @@ async function getSimilarMoviesById(id: number) {
 
         const movies: any[] = [];
 
-        response.data.forEach(movie => {
+        response.data.results.forEach(movie => {
             const titulo = getMovieByID(movie.id);
 
             if (titulo) {
@@ -156,4 +136,4 @@ async function getSimilarMoviesById(id: number) {
     }
 }
 
-export { getMovieByID, getMoviesByYear, getMoviesByYearAndGenre, getSimilarMoviesById };
+export { getMovieByID, getMoviesByYearAndGenre, getSimilarMoviesById };

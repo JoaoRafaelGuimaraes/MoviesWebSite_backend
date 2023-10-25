@@ -64,51 +64,30 @@ async function getSerieByID(id: number) {
     return serie;
 }
 
-async function getSeriesByYear(ano: number) {
+async function getSeriesByYearAndGenre(year: number | undefined, genre: number | string | undefined) {
     try {
-        const response = await axios.get('https://api.themoviedb.org/3/discover/tv', {
-        params: {
+        const params: Record<string, any> = {
             api_key: process.env.TMDB_API_KEY,
             language: language,
-            first_air_date_year: ano,
             sort_by: 'popularity.desc'
-            }
+        };
+
+        if (year !== undefined) {
+            params.first_air_date_year = year;
+        }
+        if (genre !== undefined) {
+            // Mapeia o genero pra o id correspondente
+            const genreId = Object.keys(serieGenreMap).find(key => serieGenreMap[key] === genre);
+            params.with_genres = genreId;
+        }
+    
+        const response = await axios.get('https://api.themoviedb.org/3/discover/tv', {
+          params
         });
     
         const series: any[] = [];
 
-        response.data.forEach(serie => {
-            const titulo = getSerieByID(serie.id);
-
-            if (titulo) {
-                series.push(titulo);
-            } else {
-                throw new Error('Erro ao buscar título');
-            }
-        });
-
-        return series;
-    
-    } catch (error) {
-        throw error;
-    }
-}
-
-async function getSeriesByYearAndGenre(year: number, genre: number | string) {
-    try {
-        const response = await axios.get('https://api.themoviedb.org/3/discover/tv', {
-          params: {
-            api_key: process.env.TMDB_API_KEY,
-            language: language,
-            primary_release_year: year,
-            with_genres: genre,
-            sort_by: 'popularity.desc'
-          }
-        });
-    
-        const series: any[] = [];
-
-        response.data.forEach(serie => {
+        response.data.results.forEach(serie => {
             const titulo = getSerieByID(serie.id);
 
             if (titulo) {
@@ -136,7 +115,7 @@ async function getSimilarSeriesById(id: number) {
 
         const series: any[] = [];
 
-        response.data.forEach(serie => {
+        response.data.results.forEach(serie => {
             const titulo = getSerieByID(serie.id);
 
             if (titulo) {
@@ -153,4 +132,4 @@ async function getSimilarSeriesById(id: number) {
     }
 }
 
-export { getSerieByID, getSeriesByYear, getSeriesByYearAndGenre, getSimilarSeriesById };
+export { getSerieByID, getSeriesByYearAndGenre, getSimilarSeriesById };
