@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon --exec sucrase-node src/server.ts"
+    "dev": "sucrase-node src/server.ts"
   },
   "repository": {
     "type": "git",
@@ -19,10 +19,11 @@
   },
   "homepage": "https://gitlab.com/cati-jr/trainees-2023/grupo-b/backend#readme",
   "dependencies": {
+    "@fastify/cors": "^7.0.0",
     "@types/dotenv": "^8.2.0",
     "axios": "^1.5.1",
     "dotenv": "^16.3.1",
-    "fastify": "^4.24.0",
+    "fastify": "^3.29.5",
     "fastify-swagger": "^5.2.0",
     "firebase": "^10.4.0",
     "firebase-admin": "^11.11.0",
