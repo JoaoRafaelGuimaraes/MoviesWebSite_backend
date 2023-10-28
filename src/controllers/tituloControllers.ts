@@ -1,10 +1,14 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
+import axios from 'axios';
 
 import { Titulo } from "../models/tituloInterface";
 import { GetTitulosBody } from '../models/getTitulosBody';
 
 import { getMoviesByYearAndGenre, getMovieByID } from "./filmeControllers";
 import { getSeriesByYearAndGenre, getSerieByID } from "./serieControllers";
+
+import { language } from './tituloAux';
+import { SearchTituloBody } from '../models/searchTituloBody';
 
 async function getTitulosByYearAndGenre(ano: number | undefined, genre: number | string | undefined) {
     try {
@@ -39,7 +43,7 @@ async function getTituloInfo(id: number, tipo: string) {
             return serie;
 
         } else {
-            throw new Error('Tipo de título inválido');
+            throw new Error('Tipo de título inválido: ' + tipo);
         }
         
     } catch (error) {
@@ -72,4 +76,49 @@ const getTitulos = async (request: FastifyRequest, reply: FastifyReply) => {
     }
 };
 
-export { getTitulosByYearAndGenre, getTituloInfo, getTitulos };
+const searchTitulos = async (request: FastifyRequest, reply: FastifyReply) => {
+    const { nome } = request.query as SearchTituloBody;
+
+    try {
+        const response = await axios.get('https://api.themoviedb.org/3/search/multi', {
+            params: {
+                api_key: process.env.TMDB_API_KEY,
+                query: nome,
+                language: language,
+                media_type: 'movie, tv'
+            }
+        });
+
+        const titulos: any[] = [];
+        const tituloPromises: Promise<any>[] = [];
+
+        response.data.results.forEach(media => {
+            if (media.media_type === 'movie') {
+                media.media_type = 'filme';
+            } else if (media.media_type === 'tv') {
+                media.media_type = 'serie';
+            }
+
+            const tituloPromise = getTituloInfo(media.id, media.media_type);
+
+            tituloPromises.push(tituloPromise);
+        });
+
+        const titulosInfo = await Promise.all(tituloPromises);
+
+        titulosInfo.forEach(titulo => {
+            if (titulo) {
+                titulos.push(titulo);
+            } else {
+                throw new Error('Erro ao buscar título');
+            }
+        });
+
+        reply.status(200).send(titulos);
+
+    } catch (error) {
+        reply.status(500).send({ erro: 'Erro ao buscar títulos' });
+    }
+};
+
+export { getTitulosByYearAndGenre, getTituloInfo, getTitulos, searchTitulos };

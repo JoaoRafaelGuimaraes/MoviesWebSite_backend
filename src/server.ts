@@ -14,6 +14,8 @@ userInfoRoutes(server);
 userFavoritesRoutes(server);
 titulosRoutes(server);
 
+const API_LINK = 'http://localhost:3333';
+
 server.listen({ port: 3333 }, function (error, address) {
     if (error) {
         console.log(error);
