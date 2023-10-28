@@ -65,6 +65,15 @@ async function getSerieByID(id: number) {
 }
 
 async function getSeriesByYearAndGenre(year: number | undefined, genre: number | string | undefined) {
+
+    if (genre == 'Animação') {
+        genre = 'Ação & Aventura'
+    } else if (genre == 'Ficção científica') {
+        genre = 'Sci-Fi & Fantasy'
+    } else if (genre == 'Terror') {
+        genre = 'Mistério'
+    }
+    
     try {
         const params: Record<string, any> = {
             api_key: process.env.TMDB_API_KEY,
