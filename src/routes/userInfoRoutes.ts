@@ -1,8 +1,6 @@
-import { getUserInfo, changeEmailController } from "../controllers/UserInfoControllers";
-
-import{ postTitulosAsFavorite} from "../controllers/tituloControllers"
+import { getUserInfo, changeEmailController } from "../controllers/userInfoControllers";
 
 export default(server) => {
-    server.post('/getinfo', getUserInfo);
-    server.post('/changeEmail', changeEmailController);
+    server.get('/getUserInfo', getUserInfo);
+    server.put('/changeEmail', changeEmailController);
 }

@@ -1,3 +1,5 @@
-export interface postFavoriteBody {
-  filme_id: string
+export interface PostFavoriteBody {
+    id: number;
+    tipo: string;
+    generos: string[];
 }
