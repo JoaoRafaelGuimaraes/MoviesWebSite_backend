@@ -24,8 +24,7 @@ deploy dev:
     script:
         - gcloud config set project $PROJECT_NAME_DEV
         - gcloud builds submit -t gcr.io/$PROJECT_NAME_DEV/api .
-        - gcloud beta run services add-iam-policy-binding api --region=us-west1 --member=allUsers --role=roles/run.invoker
-        - gcloud run deploy api --image gcr.io/$PROJECT_NAME_DEV/api:latest --platform managed --region=us-west1 --allow-unauthenticated --memory=1Gi
+        - gcloud run deploy api --image gcr.io/$PROJECT_NAME_DEV/api:latest --platform managed --region=us-west1 --allow-unauthenticated --memory 256Mi
     rules:
         - if: '$CI_COMMIT_BRANCH == "develop"'
         - changes:
