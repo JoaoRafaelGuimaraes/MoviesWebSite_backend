@@ -9,7 +9,7 @@ build:
     script:
         - yarn install
     rules:
-        - if $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH == "develop" || $CI_COMMIT_BRANCH == "main"
+        - if: '$CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH == "develop" || $CI_COMMIT_BRANCH == "main"'
     artifacts:
         paths:
             - node_modules
@@ -26,7 +26,7 @@ deploy dev:
         - gcloud builds submit -t gcr.io/$PROJECT_NAME_DEV/api:latest --platform managed --region=us-west1 --allow-unauthenticated --memory=1Gi
     rules:
         - if: '$CI_COMMIT_BRANCH == "develop"'
-        changes:
+        - changes:
             - Dockerfile
             - src/**/*
             - .gitlab-ci.yml
