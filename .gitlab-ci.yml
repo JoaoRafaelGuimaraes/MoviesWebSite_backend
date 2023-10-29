@@ -23,7 +23,8 @@ deploy dev:
         - cp $GCP_SERVICE_ACCOUNT_DEV ./google-service-account.json
     script:
         - gcloud config set project $PROJECT_NAME_DEV
-        - gcloud builds submit -t gcr.io/$PROJECT_NAME_DEV/api:latest --platform managed --region=us-west1 --allow-unauthenticated --memory=1Gi
+        - gcloud builds submit -t gcr.io/$PROJECT_NAME_DEV/api .
+        - gcloud run deploy api --image gcr.io/$PROJECT_NAME_DEV/api:latest --platform managed --region=us-west1 --allow-unauthenticated --memory=1Gi
     rules:
         - if: '$CI_COMMIT_BRANCH == "develop"'
         - changes:
