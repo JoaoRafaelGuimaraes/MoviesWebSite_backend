@@ -26,7 +26,7 @@ userInfoRoutes(server);
 userFavoritesRoutes(server);
 titulosRoutes(server);
 
-server.listen({ port: PORT }, function (error, address) {
+server.listen(PORT, '0.0.0.0', function (error, address) {
     if (error) {
         console.log(error);
         process.exit(1);
