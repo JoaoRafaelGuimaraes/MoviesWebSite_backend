@@ -25,6 +25,7 @@ deploy dev:
         - gcloud config set project $PROJECT_NAME_DEV
         - gcloud builds submit -t gcr.io/$PROJECT_NAME_DEV/api .
         - gcloud run deploy api --image gcr.io/$PROJECT_NAME_DEV/api:latest --platform managed --region=us-west1 --allow-unauthenticated --memory=1Gi
+        - gcloud beta run services add-iam-policy-binding api --region=us-west1 --member=allUsers --role=roles/run.invoker
     rules:
         - if: '$CI_COMMIT_BRANCH == "develop"'
         - changes:
