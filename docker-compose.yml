@@ -1,0 +1,12 @@
+version: '3.9'
+
+services:
+  api:
+    build: .
+    ports:
+      - $PORT:$PORT
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    container_name: projetotrainee-grupob-api
