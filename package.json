@@ -29,6 +29,7 @@
     "firebase-admin": "^11.11.0",
     "firestore": "^1.1.6",
     "node": "^21.0.0",
+    "node-cache": "^5.1.2",
     "sucrase": "^3.34.0"
   },
   "devDependencies": {
