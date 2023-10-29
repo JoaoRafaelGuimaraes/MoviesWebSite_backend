@@ -1,11 +1,14 @@
 FROM node:lts-alpine
 
-WORKDIR ./
+WORKDIR /app
 
-COPY package.json .
+COPY package.json yarn.lock ./
 
 RUN yarn install --frozen-lockfile
 
 COPY . .
 
-CMD [ "node", "src/server.ts" ]
+RUN yarn add typescript ts-node
+RUN yarn tsc
+
+CMD [ "node", "src/server.js" ]
