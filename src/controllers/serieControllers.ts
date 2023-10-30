@@ -74,8 +74,6 @@ async function getSeriesByYearAndGenre(year: number | undefined, genre: number |
     } else if (genre == 'Terror') {
         genre = 'Mistério'
     }
-
-    console.log(genre);
     
     try {
         const params: Record<string, any> = {
