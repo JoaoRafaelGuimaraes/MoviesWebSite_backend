@@ -23,6 +23,6 @@ RUN yarn install --frozen-lockfile --production
 COPY --from=build /app/dist ./dist
 
 # Opcional: Exponha a porta que seu aplicativo estará ouvindo
-EXPOSE 3333
+EXPOSE 8080
 
 CMD [ "node", "dist/server.js" ]
