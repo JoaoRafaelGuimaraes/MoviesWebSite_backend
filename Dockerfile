@@ -3,9 +3,12 @@ FROM node:lts-alpine AS build
 
 WORKDIR /app
 
-COPY package.json yarn.lock .env ./
+COPY package.json yarn.lock ./
 
 RUN yarn install --frozen-lockfile
+
+# Copie o arquivo .env para a pasta de construção
+COPY .env ./
 
 COPY . .
 RUN yarn tsc
