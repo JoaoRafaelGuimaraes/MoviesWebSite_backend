@@ -22,6 +22,7 @@ const serviceAccount = {
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
+  projectId: 'projetotraineegrupob',
   databaseURL: 'https://projetotraineegrupob.firebaseio.com'
 });
 

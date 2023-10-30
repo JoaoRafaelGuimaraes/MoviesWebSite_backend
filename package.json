@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "sucrase-node src/server.ts",
     "build": "tsc"
   },
   "repository": {
