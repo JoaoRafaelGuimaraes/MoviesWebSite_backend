@@ -53,6 +53,7 @@ async function getMovieByID(id: number) {
 
     const movie: Titulo = {
         id: id,
+        tipo: 'filme',
         titulo: title,
         ano: release_date.substring(0, 4),
         duracao: runtime,
