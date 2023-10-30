@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 
 import { Titulo } from '../models/tituloInterface';
 
-import { language } from './tituloAux';
+import { API_KEY, language } from './tituloAux';
 import { getSerieCastById, getSerieNumSeasonsById, getSeriePGRatingById } from './tituloAux';
 
 dotenv.config();
@@ -30,7 +30,7 @@ const serieGenreMap = {
 async function getSerieByID(id: number) {
     const response = await axios.get('https://api.themoviedb.org/3/tv/' + id, {
         params: {
-            api_key: process.env.TMDB_API_KEY,
+            api_key: API_KEY,
             language: language
         }
     });
@@ -78,7 +78,7 @@ async function getSeriesByYearAndGenre(year: number | undefined, genre: number |
     
     try {
         const params: Record<string, any> = {
-            api_key: process.env.TMDB_API_KEY,
+            api_key: API_KEY,
             language: language,
             sort_by: 'popularity.desc'
         };
@@ -119,7 +119,7 @@ async function getSimilarSeriesById(id: number) {
     try {
         const response = await axios.get('https://api.themoviedb.org/3/tv/' + id + '/similar', {
             params: {
-                api_key: process.env.TMDB_API_KEY,
+                api_key: API_KEY,
                 language: language
             }
         });

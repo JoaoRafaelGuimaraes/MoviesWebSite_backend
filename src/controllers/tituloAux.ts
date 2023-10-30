@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 dotenv.config();
 export const language = 'pt-BR';
 
+export const API_KEY = '7766f2e523b15ac0e4017299de45c9c8';
+
 async function getMovieCastById(id: number) {
     try {
         const response = await axios.get('https://api.themoviedb.org/3/movie/' + id + '/credits', {

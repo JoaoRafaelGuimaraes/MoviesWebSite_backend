@@ -7,7 +7,7 @@ import { GetTitulosBody } from '../models/getTitulosBody';
 import { getMoviesByYearAndGenre, getMovieByID } from "./filmeControllers";
 import { getSeriesByYearAndGenre, getSerieByID } from "./serieControllers";
 
-import { language } from './tituloAux';
+import { API_KEY, language } from './tituloAux';
 import { SearchTituloBody } from '../models/searchTituloBody';
 
 async function getTitulosByYearAndGenre(ano: number | undefined, genre: number | string | undefined) {
@@ -82,7 +82,7 @@ const searchTitulos = async (request: FastifyRequest, reply: FastifyReply) => {
     try {
         const response = await axios.get('https://api.themoviedb.org/3/search/multi', {
             params: {
-                api_key: process.env.TMDB_API_KEY,
+                api_key: API_KEY,
                 query: nome,
                 language: language,
                 media_type: 'movie, tv'

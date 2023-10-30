@@ -7,7 +7,7 @@ COPY package.json yarn.lock ./
 
 RUN yarn install --frozen-lockfile
 
-# Copie o arquivo .env para a pasta de construção
+# Copie o arquivo .env para o contêiner
 COPY .env ./
 
 COPY . .
@@ -19,7 +19,7 @@ FROM node:lts-alpine
 WORKDIR /app
 
 # Copie apenas as dependências necessárias para produção
-COPY package.json yarn.lock .env ./
+COPY package.json yarn.lock ./
 RUN yarn install --frozen-lockfile --production
 
 # Copie o código compilado da etapa de construção
