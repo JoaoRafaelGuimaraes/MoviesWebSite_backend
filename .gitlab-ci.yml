@@ -32,4 +32,4 @@ deploy dev:
             - Dockerfile
             - src/**/*
             - .gitlab-ci.yml
-            - .gcloudignore 
+            - .gcloudignore

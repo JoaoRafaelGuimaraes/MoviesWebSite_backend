@@ -7,9 +7,6 @@ COPY package.json yarn.lock ./
 
 RUN yarn install --frozen-lockfile
 
-# Copie o arquivo .env para o contêiner
-COPY .env ./
-
 COPY . .
 RUN yarn tsc
 
