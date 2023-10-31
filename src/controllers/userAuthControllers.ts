@@ -152,12 +152,12 @@ export const loginGoogleController = async (request: FastifyRequest, reply: Fast
             return;
         }
 
-        // Faz o login do usuário
-        await auth.signInWithCredential(GoogleAuthProvider.credential(token));
-
         // Verifica o token usando a biblioteca admin do Firebase
         const ticket = await admin.auth().verifyIdToken(token);
         const uid = ticket.uid;
+
+        // Faz o login do usuário
+        await auth.signInWithCredential(GoogleAuthProvider.credential(token));
 
         // Registra o usuário no Firestore Database (somente se ainda não estiver registrado)
         const usuarioData = {
