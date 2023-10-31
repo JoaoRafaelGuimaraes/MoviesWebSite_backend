@@ -6,6 +6,7 @@ import { LoginBody } from '../models/loginBody';
 import { RegisterBody } from '../models/registerBody';
 import { changePasswordBody } from '../models/changePasswordBody';
 import { resetPasswordBody } from '../models/resetPasswordBody';
+import { FacebookAuthProvider, GoogleAuthProvider } from 'firebase/auth';
 
 export const loginEmailAndPassController = async (request: FastifyRequest, reply: FastifyReply) => {
     // Email e senha implementam a interface LoginBody
@@ -138,5 +139,81 @@ export const changePasswordController = async (request: FastifyRequest, reply: F
     } catch (error) {
         console.error('Erro ao atualizar senha:', error);
         reply.status(500).send({ erro: 'Erro ao atualizar senha' });
+    }
+};
+
+export const loginGoogleController = async (request: FastifyRequest, reply: FastifyReply) => {
+    const { token } = request.body as { token: string };
+
+    try {
+        // Verifique se o token do Google foi fornecido
+        if (!token) {
+            reply.status(400).send({ erro: 'Token do Google ausente' });
+            return;
+        }
+
+        // Verifica o token usando a biblioteca admin do Firebase
+        const ticket = await admin.auth().verifyIdToken(token);
+        const uid = ticket.uid;
+
+        // Registra o usuário no Firestore Database (somente se ainda não estiver registrado)
+        const usuarioData = {
+            uid: uid,
+            nome: ticket.name,
+            email: ticket.email,
+            // O telefone pode não estar disponível no ticket. Adicione validação ou remova essa linha se não for necessário.
+            telefone: ticket.phone_number || "Nenhum telefone associado à conta do Google"
+        };
+
+        const usuarioRef = admin.firestore().collection('usuarios').doc(uid);
+        if (!(await usuarioRef.get()).exists) {
+            await usuarioRef.set(usuarioData);
+        }
+
+        reply.status(200).send({ mensagem: 'Login com Google realizado' });
+    } catch (error) {
+        console.error('Erro ao fazer login com Google:', error);
+        reply.status(500).send({ erro: 'Erro ao fazer login com Google' });
+    }
+};
+
+export const loginFacebookController = async (request: FastifyRequest, reply: FastifyReply) => {
+    const { token } = request.body as { token: string };
+
+    try {
+        // Verifique se o token do Facebook foi fornecido
+        if (!token) {
+            reply.status(400).send({ erro: 'Token do Facebook ausente' });
+            return;
+        }
+
+        // Cria uma credencial com o token do Facebook
+        const credential = FacebookAuthProvider.credential(token);
+
+        // Faz login com a credencial
+        await auth.signInWithCredential(credential);
+
+        // Registra o usuário no Firestore Database
+        const user = auth.currentUser;
+
+        if (user) {
+            const usuarioData = {
+                uid: user.uid,
+                nome: user.displayName,
+                email: user.email,
+                telefone: user.phoneNumber,
+            };
+
+            const usuarioRef = admin.firestore().collection('usuarios').doc(user.uid);
+            await usuarioRef.set(usuarioData);
+
+            reply.status(200).send({ mensagem: 'Login com Facebook realizado' });
+        } else {
+            reply.status(500).send({ erro: 'Erro ao autenticar com o Facebook' });
+        }
+
+    } catch (error) {
+        console.error('Erro ao fazer login com Facebook:', error);
+        reply.status(500).send({ erro: 'Erro ao fazer login com Facebook' });
     }
 };

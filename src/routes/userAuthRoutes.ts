@@ -4,6 +4,8 @@ import {
     logoutController,
     resetPasswordController,
     changePasswordController,
+    loginGoogleController,
+    loginFacebookController
     } from '../controllers/userAuthControllers';
 
 export default (server) => {
@@ -12,4 +14,6 @@ export default (server) => {
     server.post('/logout', logoutController);
     server.post('/resetPassword', resetPasswordController);
     server.post('/changePassword', changePasswordController);
+    server.post('/loginGoogle', loginGoogleController);
+    server.post('/loginFacebook', loginFacebookController);
 }
