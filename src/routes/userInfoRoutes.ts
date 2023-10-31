@@ -2,5 +2,5 @@ import { getUserInfo, changeEmailController } from "../controllers/userInfoContr
 
 export default(server) => {
     server.get('/getUserInfo', getUserInfo);
-    server.put('/changeEmail', changeEmailController);
+    server.post('/changeEmail', changeEmailController);
 }
