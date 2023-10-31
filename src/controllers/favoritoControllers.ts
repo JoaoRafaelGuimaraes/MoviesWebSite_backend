@@ -6,6 +6,7 @@ import { GetFavoriteBody } from "../models/getFavoriteBody";
 import { RemoveFavoriteParams } from '../models/removeFavoriteParams';
 
 import { getTituloInfo } from './tituloControllers';
+import { isUserFavoriteBody } from '../models/isUserFavoritebody';
 
 async function postTituloAsFavorite(request: FastifyRequest, reply: FastifyReply) {
     try {
@@ -114,4 +115,31 @@ const getFavorites = async (request: FastifyRequest, reply: FastifyReply) => {
     }
 };
 
-export { postTituloAsFavorite, removeTituloFromFavorites, getFavorites }
+const isUserFavorite = async (request: FastifyRequest, reply: FastifyReply) => {
+    const { id } = request.query as isUserFavoriteBody;
+
+    const user = await auth.currentUser;
+
+    if (!user) {
+        reply.status(401).send({ erro: 'Usuário não autenticado' });
+        return;
+    }
+
+    const favoritosRef = admin.firestore().collection('usuarios').doc(user.uid.toString()).collection('favoritos');
+
+    try {
+        const favorito = await favoritosRef.doc(id.toString()).get();
+
+        if (favorito.exists) {
+            reply.status(200).send({ isFavorite: true });
+        } else {
+            reply.status(200).send({ isFavorite: false });
+        }
+
+    } catch (error) {
+        console.error('Erro ao buscar favoritos:', error);
+        reply.status(500).send({ erro: 'Erro ao buscar favoritos: ' + error.message });
+    }
+};
+
+export { postTituloAsFavorite, removeTituloFromFavorites, getFavorites, isUserFavorite }
