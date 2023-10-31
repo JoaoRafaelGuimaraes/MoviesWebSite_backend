@@ -7,6 +7,8 @@ COPY package.json yarn.lock ./
 
 RUN yarn install --frozen-lockfile
 
+COPY .env ./
+
 COPY . .
 RUN yarn tsc
 
@@ -21,6 +23,7 @@ RUN yarn install --frozen-lockfile --production
 
 # Copie o código compilado da etapa de construção
 COPY --from=build /app/dist ./dist
+COPY --from=build /app/.env ./
 
 # Opcional: Exponha a porta que seu aplicativo estará ouvindo
 EXPOSE 8080
