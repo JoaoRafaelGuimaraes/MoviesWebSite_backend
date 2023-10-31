@@ -1,5 +1,4 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import axios from 'axios';
 
 import { Titulo } from "../models/tituloInterface";
 import { GetTitulosBody } from '../models/getTitulosBody';
@@ -7,7 +6,7 @@ import { GetTitulosBody } from '../models/getTitulosBody';
 import { getMoviesByYearAndGenre, getMovieByID } from "./filmeControllers";
 import { getSeriesByYearAndGenre, getSerieByID } from "./serieControllers";
 
-import { API_KEY, language } from './tituloAux';
+import { fetchFromAPI, language } from './tituloAux';
 import { SearchTituloBody } from '../models/searchTituloBody';
 
 async function getTitulosByYearAndGenre(ano: number | undefined, genre: number | string | undefined) {
@@ -80,41 +79,25 @@ const searchTitulos = async (request: FastifyRequest, reply: FastifyReply) => {
     const { nome } = request.query as SearchTituloBody;
 
     try {
-        const response = await axios.get('https://api.themoviedb.org/3/search/multi', {
-            params: {
-                api_key: API_KEY,
-                query: nome,
-                language: language,
-                media_type: 'movie, tv'
-            }
+        const data = await fetchFromAPI('https://api.themoviedb.org/3/search/multi', {
+            api_key: process.env.TMDB_API_KEY,
+            query: nome,
+            language: language,
+            media_type: 'movie, tv'
         });
 
-        const titulos: any[] = [];
-        const tituloPromises: Promise<any>[] = [];
-
-        response.data.results.forEach(media => {
+        const tituloPromises = data.results.map(media => {
             if (media.media_type === 'movie') {
-                media.media_type = 'filme';
+                return getTituloInfo(media.id, 'filme');
             } else if (media.media_type === 'tv') {
-                media.media_type = 'serie';
+                return getTituloInfo(media.id, 'serie');
             }
-
-            const tituloPromise = getTituloInfo(media.id, media.media_type);
-
-            tituloPromises.push(tituloPromise);
+            return null;
         });
 
-        const titulosInfo = await Promise.all(tituloPromises);
+        const titulos = await Promise.all(tituloPromises);
 
-        titulosInfo.forEach(titulo => {
-            if (titulo) {
-                titulos.push(titulo);
-            } else {
-                throw new Error('Erro ao buscar título');
-            }
-        });
-
-        reply.status(200).send(titulos);
+        reply.status(200).send(titulos.filter(titulo => titulo !== null));
 
     } catch (error) {
         reply.status(500).send({ erro: 'Erro ao buscar títulos' });
