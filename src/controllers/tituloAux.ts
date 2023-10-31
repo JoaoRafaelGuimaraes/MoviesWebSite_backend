@@ -1,22 +1,44 @@
 import axios from 'axios';
 import dotenv from 'dotenv';
 
+import NodeCache from 'node-cache';
+export const cache = new NodeCache({ stdTTL: 900 }); // Cache por 15 min (900s)
+
 dotenv.config();
 export const language = 'pt-BR';
 
-async function getMovieCastById(id: number) {
+async function fetchFromAPI(url: string, params: Record<string, any>) {
+    const cacheKey = `${url}:${JSON.stringify(params)}`;
+    const cachedData = cache.get(cacheKey);
+
+    if (cachedData) {
+        return cachedData;
+    }
+
     try {
-        const response = await axios.get('https://api.themoviedb.org/3/movie/' + id + '/credits', {
-            params: {
-                api_key: process.env.TMDB_API_KEY,
-                language: language
-            }
+        const response = await axios.get(url, {
+            params
         });
 
-        const elenco = response.data.cast.slice(0, 4).map((ator) => ator.name);;
+        cache.set(cacheKey, response.data);
+        return response.data;
+
+    } catch (error) {
+        throw error;
+    }
+}
+
+async function getMovieCastById(id: number) {
+    try {
+        const data = await fetchFromAPI('https://api.themoviedb.org/3/movie/' + id + '/credits', {
+            api_key: process.env.TMDB_API_KEY,
+            language: language
+        });
+
+        const elenco = data.cast.slice(0, 4).map((ator) => ator.name);
 
         return elenco;
-        
+
     } catch (error) {
         throw error;
     }
@@ -24,17 +46,13 @@ async function getMovieCastById(id: number) {
 
 async function getMovieRuntimeById(id: number) {
     try {
-        const response = await axios.get('https://api.themoviedb.org/3/movie/' + id, {
-            params: {
-                api_key: process.env.TMDB_API_KEY,
-                language: language
-            }
+        const data = await fetchFromAPI('https://api.themoviedb.org/3/movie/' + id, {
+            api_key: process.env.TMDB_API_KEY,
+            language: language
         });
 
-        const runtime = response.data.runtime;
+        return data.runtime;
 
-        return runtime;
-        
     } catch (error) {
         throw error;
     }
@@ -42,31 +60,19 @@ async function getMovieRuntimeById(id: number) {
 
 async function getMoviePGRatingById(id: number) {
     try {
-      const response = await axios.get('https://api.themoviedb.org/3/movie/' + id + '/release_dates', {
-        params: {
-          api_key: process.env.TMDB_API_KEY,
-          language: language,
-        }
-      });
-  
-      if (response.data.results && response.data.results.length > 0) {
+        const data = await fetchFromAPI('https://api.themoviedb.org/3/movie/' + id + '/release_dates', {
+            api_key: process.env.TMDB_API_KEY,
+            language: language
+        });
+
         // Tenta encontrar a classificação indicativa para o Brasil
-        const certification = response.data.results.find((result) => result.iso_3166_1 === 'BR');
-  
-        if (certification) {
-          return certification.release_dates[0].certification;;
-        }
-      }
-  
-      // Se não encontrou a classificação para o Brasil, retorna a primeira da lista
-      const firstCertification = response.data.results[0];
-      
-      if (firstCertification && firstCertification.release_dates && firstCertification.release_dates.length > 0) {
-        return firstCertification.release_dates[0].certification;
-      }
-  
+        const certificationBR = data.results?.find((result) => result.iso_3166_1 === 'BR')?.release_dates?.[0]?.certification;
+
+        // Se encontrou a classificação para o Brasil, retorna. Caso contrário, retorna a primeira da lista.
+        return certificationBR || data.results?.[0]?.release_dates?.[0]?.certification;
+
     } catch (error) {
-      throw error;
+        throw error;
     }
 }
 
@@ -74,17 +80,15 @@ async function getMoviePGRatingById(id: number) {
 
 async function getSerieCastById(id: number) {
     try {
-        const response = await axios.get('https://api.themoviedb.org/3/tv/' + id + '/credits', {
-            params: {
-                api_key: process.env.TMDB_API_KEY,
-                language: language
-            }
+        const data = await fetchFromAPI('https://api.themoviedb.org/3/tv/' + id + '/credits', {
+            api_key: process.env.TMDB_API_KEY,
+            language: language
         });
 
-        const elenco = response.data.cast.slice(0, 4).map((ator) => ator.name);;
+        const elenco = data.cast.slice(0, 4).map((ator) => ator.name);
 
         return elenco;
-        
+
     } catch (error) {
         throw error;
     }
@@ -92,17 +96,13 @@ async function getSerieCastById(id: number) {
 
 async function getSerieNumSeasonsById(id: number) {
     try {
-        const response = await axios.get('https://api.themoviedb.org/3/tv/' + id, {
-            params: {
-                api_key: process.env.TMDB_API_KEY,
-                language: language
-            }
+        const data = await fetchFromAPI('https://api.themoviedb.org/3/tv/' + id, {
+            api_key: process.env.TMDB_API_KEY,
+            language: language
         });
 
-        const numSeasons = response.data.number_of_seasons;
+        return data.number_of_seasons;
 
-        return numSeasons;
-        
     } catch (error) {
         throw error;
     }
@@ -110,33 +110,27 @@ async function getSerieNumSeasonsById(id: number) {
 
 async function getSeriePGRatingById(id: number) {
     try {
-        const response = await axios.get('https://api.themoviedb.org/3/tv/' + id + '/content_ratings', {
-          params: {
+        const data = await fetchFromAPI('https://api.themoviedb.org/3/tv/' + id + '/content_ratings', {
             api_key: process.env.TMDB_API_KEY,
             language: language,
-          }
         });
-    
-        if (response.data.results && response.data.results.length > 0) {
-          // Tenta encontrar a classificação indicativa para o Brasil
-          const certification = response.data.results.find((result) => result.iso_3166_1 === 'BR');
-    
-          if (certification) {
-            return certification.rating;
-          }
-        }
-    
-        // Se não encontrou a classificação para o Brasil, retorna a primeira da lista
-        const firstCertification = response.data.results[0];
 
-        if (firstCertification && firstCertification.rating) {
-            return firstCertification.rating;
+        if (data.results && data.results.length > 0) {
+            // Tenta encontrar a classificação indicativa para o Brasil
+            const certification = data.results.find((result) => result.iso_3166_1 === 'BR');
+
+            if (certification) {
+                return certification.rating;
+            }
+
+            // Se não encontrou a classificação para o Brasil, retorna a primeira da lista
+            return data.results[0].rating;
         }
-    
+
     } catch (error) {
         throw error;
     }
 }
 
-export { getMovieCastById, getMovieRuntimeById, getMoviePGRatingById,
+export { fetchFromAPI, getMovieCastById, getMovieRuntimeById, getMoviePGRatingById,
     getSerieCastById, getSerieNumSeasonsById, getSeriePGRatingById };

@@ -1,9 +1,8 @@
-import axios from 'axios';
 import dotenv from 'dotenv';
 
 import { Titulo } from '../models/tituloInterface';
 
-import { language } from './tituloAux';
+import { language, cache, fetchFromAPI } from './tituloAux';
 import { getMovieCastById, getMovieRuntimeById, getMoviePGRatingById } from './tituloAux';
 
 dotenv.config();
@@ -31,15 +30,13 @@ const movieGenreMap = {
 };
 
 async function getMovieByID(id: number) {
-    const response = await axios.get('https://api.themoviedb.org/3/movie/' + id, {
-        params: {
-            api_key: process.env.TMDB_API_KEY,
-            language: language
-        }
+    const data = await fetchFromAPI('https://api.themoviedb.org/3/movie/' + id, {
+        api_key: process.env.TMDB_API_KEY,
+        language: language
     });
     
     // Informações da rota de Details
-    const { title, release_date, genres, overview, poster_path, backdrop_path } = response.data;
+    const { title, release_date, genres, overview, poster_path, backdrop_path } = data;
    
     // Informações de outras rotas
     const [cast, runtime, pg] = await Promise.all([
@@ -86,23 +83,13 @@ async function getMoviesByYearAndGenre(year: number | undefined, genre: number |
             params.with_genres = genreId;
         }
 
-        const response = await axios.get('https://api.themoviedb.org/3/discover/movie', {
-            params
-        });
+        const data = await fetchFromAPI('https://api.themoviedb.org/3/discover/movie', params);
 
-        const movies: any[] = [];
+        const moviePromises = data.results.map(movie => getMovieByID(movie.id));
 
-        response.data.results.forEach(movie => {
-            const titulo = getMovieByID(movie.id);
+        const movies = await Promise.all(moviePromises);
 
-            if (titulo) {
-                movies.push(titulo);
-            } else {
-                throw new Error('Erro ao buscar título');
-            }
-        });
-
-        return movies;
+        return movies.filter(movie => movie !== null && movie !== undefined);
 
     } catch (error) {
         throw error;
@@ -111,26 +98,16 @@ async function getMoviesByYearAndGenre(year: number | undefined, genre: number |
 
 async function getSimilarMoviesById(id: number) {
     try {
-        const response = await axios.get('https://api.themoviedb.org/3/movie/' + id + '/similar', {
-            params: {
-                api_key: process.env.TMDB_API_KEY,
-                language: language
-            }
+        const data = await fetchFromAPI('https://api.themoviedb.org/3/movie/' + id + '/similar', {
+            api_key: process.env.TMDB_API_KEY,
+            language: language
         });
 
-        const movies: any[] = [];
+        const moviePromises = data.results.map(movie => getMovieByID(movie.id));
 
-        response.data.results.forEach(movie => {
-            const titulo = getMovieByID(movie.id);
+        const movies = await Promise.all(moviePromises);
 
-            if (titulo) {
-                movies.push(titulo);
-            } else {
-                throw new Error('Erro ao buscar título');
-            }
-        });
-
-        return movies;
+        return movies.filter(movie => movie !== null && movie !== undefined);
 
     } catch (error) {
         throw error;

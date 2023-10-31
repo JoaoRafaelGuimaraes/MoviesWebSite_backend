@@ -1,9 +1,8 @@
-import axios from 'axios';
 import dotenv from 'dotenv';
 
 import { Titulo } from '../models/tituloInterface';
 
-import { language } from './tituloAux';
+import { language, fetchFromAPI } from './tituloAux';
 import { getSerieCastById, getSerieNumSeasonsById, getSeriePGRatingById } from './tituloAux';
 
 dotenv.config();
@@ -28,15 +27,13 @@ const serieGenreMap = {
 };
 
 async function getSerieByID(id: number) {
-    const response = await axios.get('https://api.themoviedb.org/3/tv/' + id, {
-        params: {
-            api_key: process.env.TMDB_API_KEY,
-            language: language
-        }
+    const data = await fetchFromAPI('https://api.themoviedb.org/3/tv/' + id, {
+        api_key: process.env.TMDB_API_KEY,
+        language: language
     });
     
     // Informações da rota de Details
-    const { name, first_air_date, genres, overview, poster_path, backdrop_path } = response.data;
+    const { name, first_air_date, genres, overview, poster_path, backdrop_path } = data;
    
     // Informações de outras rotas
     const [cast, seasons, pg] = await Promise.all([
@@ -67,14 +64,12 @@ async function getSerieByID(id: number) {
 
 async function getSeriesByYearAndGenre(year: number | undefined, genre: number | string | undefined) {
 
-    if (genre == 'Ação') {
-        genre = 'Ação & Aventura'
-    } else if (genre == 'Ficção científica') {
-        genre = 'Sci-Fi & Fantasy'
-    } else if (genre == 'Terror') {
-        genre = 'Mistério'
-    }
-    
+    const genreMapping = {
+        'Ação': 'Ação & Aventura',
+        'Ficção científica': 'Sci-Fi & Fantasy',
+        'Terror': 'Mistério'
+    };
+
     try {
         const params: Record<string, any> = {
             api_key: process.env.TMDB_API_KEY,
@@ -86,28 +81,20 @@ async function getSeriesByYearAndGenre(year: number | undefined, genre: number |
             params.first_air_date_year = year;
         }
         if (genre !== undefined) {
+            genre = genreMapping[genre] || genre;
+
             // Mapeia o genero pra o id correspondente
             const genreId = Object.keys(serieGenreMap).find(key => serieGenreMap[key] === genre);
             params.with_genres = genreId;
         }
     
-        const response = await axios.get('https://api.themoviedb.org/3/discover/tv', {
-          params
-        });
+        const data = await fetchFromAPI('https://api.themoviedb.org/3/discover/tv', params);
     
-        const series: any[] = [];
+        const seriesPromises = data.results.map(serie => getSerieByID(serie.id));
 
-        response.data.results.forEach(serie => {
-            const titulo = getSerieByID(serie.id);
+        const series = await Promise.all(seriesPromises);
 
-            if (titulo) {
-                series.push(titulo);
-            } else {
-                throw new Error('Erro ao buscar título');
-            }
-        });
-
-        return series;
+        return series.filter(serie => serie !== null && serie !== undefined);
 
     } catch (error) {
         throw error;
@@ -116,26 +103,16 @@ async function getSeriesByYearAndGenre(year: number | undefined, genre: number |
 
 async function getSimilarSeriesById(id: number) {
     try {
-        const response = await axios.get('https://api.themoviedb.org/3/tv/' + id + '/similar', {
-            params: {
-                api_key: process.env.TMDB_API_KEY,
-                language: language
-            }
+        const data = await fetchFromAPI('https://api.themoviedb.org/3/tv/' + id + '/similar', {
+            api_key: process.env.TMDB_API_KEY,
+            language: language
         });
 
-        const series: any[] = [];
+        const seriesPromises = data.results.map(serie => getSerieByID(serie.id));
 
-        response.data.results.forEach(serie => {
-            const titulo = getSerieByID(serie.id);
+        const series = await Promise.all(seriesPromises);
 
-            if (titulo) {
-                series.push(titulo);
-            } else {
-                throw new Error('Erro ao buscar título');
-            }
-        });
-
-        return series;
+        return series.filter(serie => serie !== null && serie !== undefined);
 
     } catch (error) {
         throw error;
