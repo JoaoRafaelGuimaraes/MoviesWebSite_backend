@@ -181,37 +181,27 @@ export const loginFacebookController = async (request: FastifyRequest, reply: Fa
     const { token } = request.body as { token: string };
 
     try {
-        // Verifique se o token do Facebook foi fornecido
         if (!token) {
             reply.status(400).send({ erro: 'Token do Facebook ausente' });
             return;
         }
 
-        // Cria uma credencial com o token do Facebook
-        const credential = FacebookAuthProvider.credential(token);
+        const ticket = await admin.auth().verifyIdToken(token);
+        const uid = ticket.uid;
 
-        // Faz login com a credencial
-        await auth.signInWithCredential(credential);
+        const usuarioData = {
+            uid: uid,
+            nome: ticket.name,
+            email: ticket.email,
+            telefone: ticket.phone_number || "Nenhum telefone associado à conta do Facebook"
+        };
 
-        // Registra o usuário no Firestore Database
-        const user = auth.currentUser;
-
-        if (user) {
-            const usuarioData = {
-                uid: user.uid,
-                nome: user.displayName,
-                email: user.email,
-                telefone: user.phoneNumber,
-            };
-
-            const usuarioRef = admin.firestore().collection('usuarios').doc(user.uid);
+        const usuarioRef = admin.firestore().collection('usuarios').doc(uid);
+        if (!(await usuarioRef.get()).exists) {
             await usuarioRef.set(usuarioData);
-
-            reply.status(200).send({ mensagem: 'Login com Facebook realizado' });
-        } else {
-            reply.status(500).send({ erro: 'Erro ao autenticar com o Facebook' });
         }
 
+        reply.status(200).send({ mensagem: 'Login com Facebook realizado' });
     } catch (error) {
         console.error('Erro ao fazer login com Facebook:', error);
         reply.status(500).send({ erro: 'Erro ao fazer login com Facebook' });
