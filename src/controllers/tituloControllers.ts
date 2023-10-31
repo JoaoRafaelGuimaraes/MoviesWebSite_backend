@@ -104,4 +104,6 @@ const searchTitulos = async (request: FastifyRequest, reply: FastifyReply) => {
     }
 };
 
+
+
 export { getTitulosByYearAndGenre, getTituloInfo, getTitulos, searchTitulos };

@@ -1,5 +1,5 @@
 import { 
-    getTitulos, searchTitulos,
+    getTitulos, searchTitulos
  } from '../controllers/tituloControllers';
 
 export default (server) => {
