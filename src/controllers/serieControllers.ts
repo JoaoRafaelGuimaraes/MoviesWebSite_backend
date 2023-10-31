@@ -47,6 +47,7 @@ async function getSerieByID(id: number) {
 
     const serie: Titulo = {
         id: id,
+        tipo: 'serie',
         titulo: name,
         ano: first_air_date.slice(0, 4),
         duracao: seasons,

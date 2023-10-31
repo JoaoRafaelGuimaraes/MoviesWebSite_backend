@@ -1,5 +1,6 @@
 export interface Titulo {
     id: number;
+    tipo: string;
     titulo: string;
     ano: string;
     duracao: string;
