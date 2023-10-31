@@ -72,7 +72,7 @@ async function getSeriesByYearAndGenre(year: number | undefined, genre: number |
 
     try {
         const params: Record<string, any> = {
-            api_key: process.env.TMDB_API_KEY,
+            api_key: API_KEY,
             language: language,
             sort_by: 'popularity.desc'
         };

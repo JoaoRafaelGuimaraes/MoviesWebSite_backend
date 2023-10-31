@@ -1,0 +1,35 @@
+image: node:lts-alpine
+
+stages:
+    - build
+    - deploy
+
+build:
+    stage: build
+    script:
+        - yarn install
+    rules:
+        - if: '$CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_BRANCH == "develop" || $CI_COMMIT_BRANCH == "main"'
+    artifacts:
+        paths:
+            - node_modules
+
+deploy dev:
+    stage: deploy
+    image: google/cloud-sdk:latest
+    before_script:
+        - gcloud auth activate-service-account --key-file=$GCP_CI_CREDENTIALS_DEV
+        - cp $ENV_DEV .env
+        - cp $GCP_SERVICE_ACCOUNT_DEV ./google-service-account.json
+    script:
+        - gcloud config set project $PROJECT_NAME_DEV
+        - gcloud builds submit -t gcr.io/$PROJECT_NAME_DEV/api .
+        - gcloud beta run services add-iam-policy-binding --region=us-west1 --member=allUsers --role=roles/run.invoker api
+        - gcloud run deploy api --image gcr.io/$PROJECT_NAME_DEV/api:latest --platform managed --region=us-west1 --allow-unauthenticated --memory 256Mi
+    rules:
+        - if: '$CI_COMMIT_BRANCH == "develop"'
+        - changes:
+            - Dockerfile
+            - src/**/*
+            - .gitlab-ci.yml
+            - .gcloudignore
