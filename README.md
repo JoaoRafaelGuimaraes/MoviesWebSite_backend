@@ -4,6 +4,7 @@ This project's main function was to be the final part of a selection project for
 
 My participation in this project was the joint development (with 3 other members) of the backend systems and functions, such as login routes, authentication and interaction with the TMDb movie API.
 
+The code can be found at "develop" branch 😉
 
 
 ![WhatsApp Image 2023-10-31 at 19 09 18](https://github.com/JoaoRafaelGuimaraes/MoviesWebSite_backend/assets/50991009/e2997251-2d2b-4904-9b79-42bef7349644)
